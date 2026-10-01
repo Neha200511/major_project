@@ -1,0 +1,69 @@
+{
+  "accuracy": 0.845,
+  "precision_macro": 0.8482,
+  "recall_macro": 0.8553,
+  "f1_macro": 0.8458,
+  "per_class": {
+    "BULLYING": {
+      "precision": 0.72,
+      "recall": 0.9,
+      "f1": 0.8,
+      "support": 20
+    },
+    "GROOMING": {
+      "precision": 1.0,
+      "recall": 0.8667,
+      "f1": 0.9286,
+      "support": 15
+    },
+    "MANIPULATION": {
+      "precision": 0.7143,
+      "recall": 0.9091,
+      "f1": 0.8,
+      "support": 11
+    },
+    "PRIVACY_RISK": {
+      "precision": 0.9375,
+      "recall": 1.0,
+      "f1": 0.9677,
+      "support": 15
+    },
+    "SAFE": {
+      "precision": 0.9167,
+      "recall": 0.7857,
+      "f1": 0.8462,
+      "support": 28
+    },
+    "SCAM": {
+      "precision": 0.9286,
+      "recall": 1.0,
+      "f1": 0.963,
+      "support": 13
+    },
+    "SELF_HARM": {
+      "precision": 0.8182,
+      "recall": 0.8182,
+      "f1": 0.8182,
+      "support": 11
+    },
+    "THREAT": {
+      "precision": 0.75,
+      "recall": 0.5625,
+      "f1": 0.6429,
+      "support": 16
+    }
+  },
+  "training_samples": 515,
+  "test_samples": 129,
+  "feature_count": 4849,
+  "classes": [
+    "BULLYING",
+    "GROOMING",
+    "MANIPULATION",
+    "PRIVACY_RISK",
+    "SAFE",
+    "SCAM",
+    "SELF_HARM",
+    "THREAT"
+  ]
+}

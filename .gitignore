@@ -1,0 +1,12 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+venv/
+*.pkl
+*.joblib
+dist/
+build/
+.DS_Store
+*.log
+.vscode/
