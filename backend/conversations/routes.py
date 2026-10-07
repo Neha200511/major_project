@@ -27,6 +27,14 @@ async def get_conv(conversation_id: str, current_user: dict = Depends(get_curren
     conv = get_conversation(conversation_id)
     if not conv:
         raise HTTPException(status_code=404, detail='Conversation not found')
+    db = get_database()
+    other_id = [p for p in conv.get('participants', []) if p != current_user['_id']]
+    if other_id:
+        other_user = db.users.find_one({'_id': other_id[0]})
+        if other_user:
+            conv['contact_name'] = other_user.get('name', 'Unknown')
+            conv['contact_id'] = other_user['_id']
+            conv['contact_status'] = other_user.get('status', 'offline')
     return {'conversation': conv}
 
 @router.get('/messages/{conversation_id}')

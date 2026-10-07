@@ -20,19 +20,19 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('user');
+    const saved = sessionStorage.getItem('user');
     return saved ? JSON.parse(saved) : null;
   });
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [token, setToken] = useState<string | null>(() => sessionStorage.getItem('token'));
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedRoleForLogin, setSelectedRoleForLogin] = useState<UserRole | null>(() => {
-    const saved = localStorage.getItem('selected_role');
+    const saved = sessionStorage.getItem('selected_role');
     return (saved as UserRole) || null;
   });
 
   useEffect(() => {
     const verifyUser = async () => {
-      const storedToken = localStorage.getItem('token');
+      const storedToken = sessionStorage.getItem('token');
       if (!storedToken) {
         setLoading(false);
         return;
@@ -40,11 +40,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       try {
         const res = await api.get('/auth/me');
         setUser(res.data.user);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
+        sessionStorage.setItem('user', JSON.stringify(res.data.user));
       } catch (err) {
         console.error('Failed to verify session', err);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         setUser(null);
         setToken(null);
       } finally {
@@ -59,8 +59,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { token: newToken, user: newUser } = res.data;
     setToken(newToken);
     setUser(newUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    sessionStorage.setItem('token', newToken);
+    sessionStorage.setItem('user', JSON.stringify(newUser));
     return newUser;
   };
 
@@ -69,8 +69,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const { token: newToken, user: newUser } = res.data;
     setToken(newToken);
     setUser(newUser);
-    localStorage.setItem('token', newToken);
-    localStorage.setItem('user', JSON.stringify(newUser));
+    sessionStorage.setItem('token', newToken);
+    sessionStorage.setItem('user', JSON.stringify(newUser));
     return newUser;
   };
 
@@ -82,8 +82,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (e) {
       console.warn('Logout API error:', e);
     } finally {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
+      sessionStorage.removeItem('token');
+      sessionStorage.removeItem('user');
       setUser(null);
       setToken(null);
     }
@@ -92,9 +92,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleSetSelectedRole = (role: UserRole | null) => {
     setSelectedRoleForLogin(role);
     if (role) {
-      localStorage.setItem('selected_role', role);
+      sessionStorage.setItem('selected_role', role);
     } else {
-      localStorage.removeItem('selected_role');
+      sessionStorage.removeItem('selected_role');
     }
   };
 

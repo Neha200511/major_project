@@ -1,17 +1,33 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from './AuthContext';
-import { Message, Alert } from '../types';
+import type { Message, Alert } from '../types';
 
 type ConnectionState = 'connected' | 'reconnecting' | 'offline';
+
+/** Every server event is broadcast to subscribers so no message is ever dropped. */
+export type SocketEvent =
+  | { type: 'message'; message: Message; client_id?: string }
+  | { type: 'read'; conversation_id: string; user_id: string }
+  | { type: 'delivered'; conversation_id: string; user_id: string }
+  | { type: 'typing'; conversation_id: string; user_id: string }
+  | { type: 'status'; user_id: string; status: 'online' | 'offline' }
+  | { type: 'unread_count'; conversation_id: string; count: number }
+  | { type: 'online_users'; users: string[] }
+  | { type: 'alert'; alert: Alert }
+  | { type: 'connected' };
+
+type Listener = (event: SocketEvent) => void;
 
 interface SocketContextType {
   connectionState: ConnectionState;
   onlineUsers: string[];
-  sendMessage: (conversationId: string, content: string) => void;
+  isUserOnline: (userId?: string) => boolean;
+  sendMessage: (conversationId: string, content: string, clientId?: string) => void;
   sendTyping: (conversationId: string) => void;
   sendRead: (conversationId: string) => void;
-  latestMessage: Message | null;
+  subscribe: (listener: Listener) => () => void;
   typingMap: Record<string, string>; // conversation_id -> user_id
+  unreadMap: Record<string, number>; // conversation_id -> count
   newParentAlert: Alert | null;
   dismissParentAlert: () => void;
 }
@@ -19,170 +35,232 @@ interface SocketContextType {
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, token, isParent } = useAuth();
+  const { token, user } = useAuth();
+  const userId = user?._id;
+  const isParent = user?.role === 'PARENT';
+
   const [connectionState, setConnectionState] = useState<ConnectionState>('offline');
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
-  const [latestMessage, setLatestMessage] = useState<Message | null>(null);
   const [typingMap, setTypingMap] = useState<Record<string, string>>({});
+  const [unreadMap, setUnreadMap] = useState<Record<string, number>>({});
   const [newParentAlert, setNewParentAlert] = useState<Alert | null>(null);
 
-  const chatWsRef = useRef<WebSocket | null>(null);
+  const wsRef = useRef<WebSocket | null>(null);
   const alertWsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<any>(null);
-  const typingTimeoutRef = useRef<Record<string, any>>({});
+  const listenersRef = useRef<Set<Listener>>(new Set());
+  const queueRef = useRef<string[]>([]);
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pingTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  const attemptsRef = useRef(0);
+  const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const lastTypingSent = useRef<Record<string, number>>({});
 
-  // Setup WebSocket connection
-  const connectSockets = useCallback(() => {
-    if (!token || !user) {
-      if (chatWsRef.current) chatWsRef.current.close();
-      if (alertWsRef.current) alertWsRef.current.close();
+  const emit = useCallback((event: SocketEvent) => {
+    listenersRef.current.forEach((l) => {
+      try {
+        l(event);
+      } catch (e) {
+        console.error('Socket listener error', e);
+      }
+    });
+  }, []);
+
+  const subscribe = useCallback((listener: Listener) => {
+    listenersRef.current.add(listener);
+    return () => {
+      listenersRef.current.delete(listener);
+    };
+  }, []);
+
+  /** Send immediately if open, otherwise queue until the socket reconnects. */
+  const rawSend = useCallback((payload: object, queueIfClosed = true) => {
+    const data = JSON.stringify(payload);
+    const ws = wsRef.current;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(data);
+    } else if (queueIfClosed) {
+      queueRef.current.push(data);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!token || !userId) {
       setConnectionState('offline');
+      setOnlineUsers([]);
       return;
     }
 
+    let disposed = false; // true once this effect is cleaned up -> never reconnect
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host; // Uses Vite dev proxy or production host
+    const host = window.location.host;
 
-    // Chat WebSocket
-    const chatUrl = `${protocol}//${host}/ws/chat/${token}`;
-    const ws = new WebSocket(chatUrl);
-
-    ws.onopen = () => {
-      setConnectionState('connected');
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        if (data.type === 'message' && data.message) {
-          setLatestMessage(data.message);
-        } else if (data.type === 'typing') {
-          const { conversation_id, user_id } = data;
-          setTypingMap((prev) => ({ ...prev, [conversation_id]: user_id }));
-          
-          if (typingTimeoutRef.current[conversation_id]) {
-            clearTimeout(typingTimeoutRef.current[conversation_id]);
-          }
-          typingTimeoutRef.current[conversation_id] = setTimeout(() => {
+    const handleEvent = (data: any) => {
+      switch (data.type) {
+        case 'message':
+          emit(data);
+          break;
+        case 'read':
+        case 'delivered':
+          emit(data);
+          break;
+        case 'typing': {
+          const cid = data.conversation_id;
+          setTypingMap((prev) => ({ ...prev, [cid]: data.user_id }));
+          if (typingTimers.current[cid]) clearTimeout(typingTimers.current[cid]);
+          typingTimers.current[cid] = setTimeout(() => {
             setTypingMap((prev) => {
               const copy = { ...prev };
-              delete copy[conversation_id];
+              delete copy[cid];
               return copy;
             });
-          }, 3000);
-        } else if (data.type === 'online_users') {
-          setOnlineUsers(data.users || []);
-        } else if (data.type === 'status') {
-          const { user_id, status } = data;
-          setOnlineUsers((prev) => {
-            if (status === 'online') {
-              return prev.includes(user_id) ? prev : [...prev, user_id];
-            } else {
-              return prev.filter((id) => id !== user_id);
-            }
-          });
-        } else if (data.type === 'alert' && data.alert) {
-          setNewParentAlert(data.alert);
+          }, 2500);
+          emit(data);
+          break;
         }
-      } catch (err) {
-        console.error('Failed to parse WebSocket message', err);
+        case 'online_users':
+          setOnlineUsers(data.users || []);
+          emit(data);
+          break;
+        case 'status':
+          setOnlineUsers((prev) =>
+            data.status === 'online'
+              ? prev.includes(data.user_id) ? prev : [...prev, data.user_id]
+              : prev.filter((id) => id !== data.user_id)
+          );
+          emit(data);
+          break;
+        case 'unread_count':
+          setUnreadMap((prev) => ({ ...prev, [data.conversation_id]: data.count }));
+          emit(data);
+          break;
+        case 'alert':
+          if (data.alert) setNewParentAlert(data.alert);
+          emit(data);
+          break;
+        default:
+          break;
       }
     };
 
-    ws.onclose = () => {
-      setConnectionState('offline');
-      // Attempt reconnect after 3 seconds
-      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
-      reconnectTimeoutRef.current = setTimeout(() => {
-        setConnectionState('reconnecting');
-        connectSockets();
-      }, 3000);
-    };
+    const connect = () => {
+      if (disposed) return;
+      const ws = new WebSocket(`${protocol}//${host}/ws/chat/${token}`);
+      wsRef.current = ws;
 
-    ws.onerror = () => {
-      ws.close();
-    };
+      ws.onopen = () => {
+        if (disposed) return;
+        attemptsRef.current = 0;
+        setConnectionState('connected');
+        // Flush anything typed while reconnecting
+        const pending = queueRef.current.splice(0);
+        pending.forEach((p) => ws.send(p));
+        // Keep-alive
+        if (pingTimer.current) clearInterval(pingTimer.current);
+        pingTimer.current = setInterval(() => {
+          if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'ping' }));
+        }, 25000);
+        emit({ type: 'connected' });
+      };
 
-    chatWsRef.current = ws;
-
-    // Parent Alert WebSocket (only for parents)
-    if (isParent) {
-      const alertUrl = `${protocol}//${host}/ws/alerts/${token}`;
-      const alertWs = new WebSocket(alertUrl);
-
-      alertWs.onmessage = (event) => {
+      ws.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'alert' && data.alert) {
-            setNewParentAlert(data.alert);
-          }
+          handleEvent(JSON.parse(event.data));
         } catch (err) {
-          console.error('Failed to parse alert socket data', err);
+          console.error('Failed to parse WebSocket message', err);
         }
       };
 
+      ws.onclose = (ev) => {
+        if (pingTimer.current) clearInterval(pingTimer.current);
+        if (disposed) return;
+        if (ev.code === 4001) {
+          setConnectionState('offline');
+          return; // invalid token: do not retry
+        }
+        setConnectionState('reconnecting');
+        const delay = Math.min(1000 * 2 ** attemptsRef.current, 10000);
+        attemptsRef.current += 1;
+        reconnectTimer.current = setTimeout(connect, delay);
+      };
+
+      ws.onerror = () => {
+        // onclose will follow and handle reconnection
+      };
+    };
+
+    connect();
+
+    // Dedicated parent alert channel
+    if (isParent) {
+      const alertWs = new WebSocket(`${protocol}//${host}/ws/alerts/${token}`);
+      alertWs.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.type === 'alert' && data.alert) setNewParentAlert(data.alert);
+        } catch {
+          /* ignore */
+        }
+      };
       alertWsRef.current = alertWs;
     }
-  }, [token, user, isParent]);
-
-  useEffect(() => {
-    connectSockets();
 
     return () => {
-      if (chatWsRef.current) chatWsRef.current.close();
-      if (alertWsRef.current) alertWsRef.current.close();
-      if (reconnectTimeoutRef.current) clearTimeout(reconnectTimeoutRef.current);
+      disposed = true;
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current);
+      if (pingTimer.current) clearInterval(pingTimer.current);
+      wsRef.current?.close();
+      wsRef.current = null;
+      alertWsRef.current?.close();
+      alertWsRef.current = null;
     };
-  }, [connectSockets]);
+    // Reconnect only when the logged-in identity changes
+  }, [token, userId, isParent, emit]);
 
-  const sendMessage = useCallback((conversationId: string, content: string) => {
-    if (chatWsRef.current && chatWsRef.current.readyState === WebSocket.OPEN) {
-      chatWsRef.current.send(
-        JSON.stringify({
-          type: 'message',
-          conversation_id: conversationId,
-          content,
-        })
-      );
-    }
-  }, []);
+  const sendMessage = useCallback(
+    (conversationId: string, content: string, clientId?: string) => {
+      rawSend({ type: 'message', conversation_id: conversationId, content, client_id: clientId });
+    },
+    [rawSend]
+  );
 
-  const sendTyping = useCallback((conversationId: string) => {
-    if (chatWsRef.current && chatWsRef.current.readyState === WebSocket.OPEN) {
-      chatWsRef.current.send(
-        JSON.stringify({
-          type: 'typing',
-          conversation_id: conversationId,
-        })
-      );
-    }
-  }, []);
+  const sendTyping = useCallback(
+    (conversationId: string) => {
+      // Throttle typing events to one every 1.5s
+      const now = Date.now();
+      if (now - (lastTypingSent.current[conversationId] || 0) < 1500) return;
+      lastTypingSent.current[conversationId] = now;
+      rawSend({ type: 'typing', conversation_id: conversationId }, false);
+    },
+    [rawSend]
+  );
 
-  const sendRead = useCallback((conversationId: string) => {
-    if (chatWsRef.current && chatWsRef.current.readyState === WebSocket.OPEN) {
-      chatWsRef.current.send(
-        JSON.stringify({
-          type: 'read',
-          conversation_id: conversationId,
-        })
-      );
-    }
-  }, []);
+  const sendRead = useCallback(
+    (conversationId: string) => {
+      setUnreadMap((prev) => ({ ...prev, [conversationId]: 0 }));
+      rawSend({ type: 'read', conversation_id: conversationId });
+    },
+    [rawSend]
+  );
 
-  const dismissParentAlert = useCallback(() => {
-    setNewParentAlert(null);
-  }, []);
+  const isUserOnline = useCallback(
+    (id?: string) => (id ? onlineUsers.includes(id) : false),
+    [onlineUsers]
+  );
+
+  const dismissParentAlert = useCallback(() => setNewParentAlert(null), []);
 
   return (
     <SocketContext.Provider
       value={{
         connectionState,
         onlineUsers,
+        isUserOnline,
         sendMessage,
         sendTyping,
         sendRead,
-        latestMessage,
+        subscribe,
         typingMap,
+        unreadMap,
         newParentAlert,
         dismissParentAlert,
       }}
@@ -194,8 +272,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
+  if (!context) throw new Error('useSocket must be used within a SocketProvider');
   return context;
 };

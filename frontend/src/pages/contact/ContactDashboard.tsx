@@ -10,14 +10,13 @@ import { MessageSquare, Circle, ArrowRight, ShieldCheck } from 'lucide-react';
 
 export const ContactDashboard: React.FC = () => {
   const { user } = useAuth();
-  const { onlineUsers, latestMessage } = useSocket();
+  const { isUserOnline, subscribe } = useSocket();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const fetchConversations = async () => {
+  const fetchConversations = React.useCallback(async () => {
     try {
-      setLoading(true);
       const res = await api.get('/conversations');
       setConversations(res.data.conversations || []);
     } catch (err) {
@@ -25,17 +24,20 @@ export const ContactDashboard: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchConversations();
   }, []);
 
   useEffect(() => {
-    if (latestMessage) {
-      fetchConversations();
-    }
-  }, [latestMessage]);
+    setLoading(true);
+    fetchConversations();
+  }, [fetchConversations]);
+
+  useEffect(() => {
+    return subscribe((event) => {
+      if (event.type === 'message' || event.type === 'unread_count' || event.type === 'status' || event.type === 'connected') {
+        fetchConversations();
+      }
+    });
+  }, [subscribe, fetchConversations]);
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -83,9 +85,7 @@ export const ContactDashboard: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {conversations.map((conv) => {
-              const isOnline = conv.contact_id
-                ? onlineUsers.includes(conv.contact_id)
-                : conv.contact_status === 'online';
+              const isOnline = isUserOnline(conv.contact_id);
 
               return (
                 <GlassCard

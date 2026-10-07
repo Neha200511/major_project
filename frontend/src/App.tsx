@@ -91,6 +91,14 @@ export const App: React.FC = () => {
                 }
               />
               <Route
+                path="/child/chat"
+                element={
+                  <ProtectedRoute allowedRoles={['CHILD']}>
+                    <ChildChat />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/child/chat/:conversationId"
                 element={
                   <ProtectedRoute allowedRoles={['CHILD']}>
@@ -129,6 +137,14 @@ export const App: React.FC = () => {
                 element={
                   <ProtectedRoute allowedRoles={['CONTACT']}>
                     <ContactDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/contact/chat"
+                element={
+                  <ProtectedRoute allowedRoles={['CONTACT']}>
+                    <ContactChat />
                   </ProtectedRoute>
                 }
               />

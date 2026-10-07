@@ -21,6 +21,7 @@ import {
   Wifi,
   WifiOff,
   Code2,
+  LayoutDashboard,
 } from 'lucide-react';
 import clsx from 'clsx';
 
@@ -38,7 +39,8 @@ export const AppLayout: React.FC = () => {
 
   // Nav links per role
   const childLinks = [
-    { to: '/child', label: 'Conversations', icon: <MessageSquare className="w-4 h-4" /> },
+    { to: '/child', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { to: '/child/chat', label: 'Chats', icon: <MessageSquare className="w-4 h-4" /> },
     { to: '/child/contacts', label: 'My Contacts', icon: <Users className="w-4 h-4" /> },
     { to: '/child/safety', label: 'Safety Status', icon: <ShieldCheck className="w-4 h-4" /> },
     { to: '/child/profile', label: 'Profile', icon: <UserIcon className="w-4 h-4" /> },
@@ -56,7 +58,8 @@ export const AppLayout: React.FC = () => {
   ];
 
   const contactLinks = [
-    { to: '/contact', label: 'My Conversations', icon: <MessageSquare className="w-4 h-4" /> },
+    { to: '/contact', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
+    { to: '/contact/chat', label: 'Chats', icon: <MessageSquare className="w-4 h-4" /> },
     { to: '/contact/profile', label: 'Profile', icon: <UserIcon className="w-4 h-4" /> },
   ];
 
@@ -111,7 +114,9 @@ export const AppLayout: React.FC = () => {
             {/* Navigation Links */}
             <nav className="space-y-1">
               {currentLinks.map((link) => {
-                const isActive = location.pathname === link.to;
+                const isActive =
+                  location.pathname === link.to ||
+                  (link.to.includes('/chat') && location.pathname.startsWith(link.to));
                 return (
                   <NavLink
                     key={link.to}
