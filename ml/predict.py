@@ -13,7 +13,7 @@ import pickle
 import sys
 from typing import Dict, Optional
 
-from ml.preprocessing import clean_for_ml
+from ml.preprocessing import normalize_text, clean_for_ml
 
 # Model directory
 MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model')
@@ -21,15 +21,23 @@ MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'model')
 
 def load_model():
     """
-    Load saved model, vectorizer, and label encoder.
+    Load saved model/pipeline, vectorizer, and label encoder.
     
     Returns:
-        tuple: (model, vectorizer, label_encoder) or (None, None, None) if not found
+        tuple: (model_or_pipeline, vectorizer, label_encoder) or (None, None, None) if not found
     """
+    pipeline_path = os.path.join(MODEL_DIR, 'pipeline.pkl')
     model_path = os.path.join(MODEL_DIR, 'model.pkl')
     vectorizer_path = os.path.join(MODEL_DIR, 'vectorizer.pkl')
     encoder_path = os.path.join(MODEL_DIR, 'label_encoder.pkl')
     
+    if os.path.exists(pipeline_path) and os.path.exists(encoder_path):
+        with open(pipeline_path, 'rb') as f:
+            pipeline = pickle.load(f)
+        with open(encoder_path, 'rb') as f:
+            label_encoder = pickle.load(f)
+        return pipeline, None, label_encoder
+        
     if not all(os.path.exists(p) for p in [model_path, vectorizer_path, encoder_path]):
         print(f"Error: Model files not found in {MODEL_DIR}")
         print("Run 'python -m ml.train' first to train the model.")
@@ -51,14 +59,14 @@ def predict(text: str, model=None, vectorizer=None, label_encoder=None) -> Dict:
     
     Args:
         text: Input text to classify
-        model: Pre-loaded model (optional, will load if None)
-        vectorizer: Pre-loaded vectorizer (optional)
-        label_encoder: Pre-loaded encoder (optional)
+        model: Pre-loaded model or pipeline
+        vectorizer: Pre-loaded vectorizer (if separate)
+        label_encoder: Pre-loaded encoder
     
     Returns:
         dict with category, confidence, probabilities
     """
-    if model is None or vectorizer is None or label_encoder is None:
+    if model is None or label_encoder is None:
         model, vectorizer, label_encoder = load_model()
         if model is None:
             return {
@@ -69,14 +77,17 @@ def predict(text: str, model=None, vectorizer=None, label_encoder=None) -> Dict:
             }
     
     # Preprocess
-    cleaned = clean_for_ml(text)
+    cleaned = normalize_text(text)
     
-    # Vectorize
-    text_vector = vectorizer.transform([cleaned])
-    
-    # Predict
-    prediction = model.predict(text_vector)[0]
-    probabilities = model.predict_proba(text_vector)[0]
+    if hasattr(model, 'predict_proba') and vectorizer is None:
+        # Full Pipeline
+        prediction = model.predict([cleaned])[0]
+        probabilities = model.predict_proba([cleaned])[0]
+    else:
+        # Separate Vectorizer + Classifier
+        text_vector = vectorizer.transform([cleaned])
+        prediction = model.predict(text_vector)[0]
+        probabilities = model.predict_proba(text_vector)[0]
     
     # Decode
     category = str(label_encoder.inverse_transform([prediction])[0])

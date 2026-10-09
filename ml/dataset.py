@@ -482,9 +482,252 @@ def get_training_data():
         ("Your phone has a virus, click here to fix it", "SCAM"),
         ("I'm a Nigerian prince and I need your help with money", "SCAM"),
         ("Send crypto to this wallet and I'll double it", "SCAM"),
+        ("Send your credit card info to receive the reward", "SCAM"),
+        ("Click this link to claim your $1000 gift voucher", "SCAM"),
+        ("Invest $50 in this crypto scheme and get $500", "SCAM"),
+        ("Send me your login credentials to unlock premium features", "SCAM"),
+
+        # ============================================================
+        # EXTENDED VOCABULARY: THREAT (Unseen violence actions, weapons, intimidation)
+        # ============================================================
+        ("I will strangle you until you stop breathing", "THREAT"),
+        ("I'm going to choke you if you show up here", "THREAT"),
+        ("I'll punch your teeth out next time I see you", "THREAT"),
+        ("I am going to bash your face in", "THREAT"),
+        ("I'll batter you senseless after class", "THREAT"),
+        ("I'm going to stab you with a knife", "THREAT"),
+        ("I have a blade and I'm not afraid to use it on you", "THREAT"),
+        ("I'll slice you up if you open your mouth", "THREAT"),
+        ("I am going to shoot you dead", "THREAT"),
+        ("I have a gun in my bag and your name is on it", "THREAT"),
+        ("I will hunt you down wherever you run", "THREAT"),
+        ("I've been stalking you and I know your daily routine", "THREAT"),
+        ("I'll jump you with my gang on your way home", "THREAT"),
+        ("I'm going to break your legs so you can't walk", "THREAT"),
+        ("I'll break your neck if you cross me again", "THREAT"),
+        ("I will put you in the hospital", "THREAT"),
+        ("You will end up in a coma when I'm finished with you", "THREAT"),
+        ("I'll bury you six feet deep", "THREAT"),
+        ("Count your days, you don't have much time left", "THREAT"),
+        ("Say your prayers because you're dead meat", "THREAT"),
+        ("I will slaughter you like an animal", "THREAT"),
+        ("I will execute you where you stand", "THREAT"),
+        ("I'm going to poison your drink", "THREAT"),
+        ("I will burn your house down with you inside", "THREAT"),
+        ("I'll drown you in the pool", "THREAT"),
+        ("I'm going to assault you the moment you step outside", "THREAT"),
+        ("I will slit your throat in your sleep", "THREAT"),
+        ("I am going to track your location and attack you", "THREAT"),
+        ("I will doxx you and post your private address online", "THREAT"),
+        ("I'm going to swat your house and call armed police on you", "THREAT"),
+        ("I will leak all your private photos to your classmates", "THREAT"),
+        ("I'll ruin your family and destroy everything you care about", "THREAT"),
+        ("You won't survive the week, mark my words", "THREAT"),
+        ("I will make you bleed until you beg for mercy", "THREAT"),
+        ("Consider this your final warning before I hurt you", "THREAT"),
+        ("I'm going to kidnap you after school", "THREAT"),
+        ("There is no escape for you, I'm right behind you", "THREAT"),
+
+        # ============================================================
+        # EXTENDED VOCABULARY: BULLYING (Vile insults, harassment, exclusion)
+        # ============================================================
+        ("You are a grotesque freak and everyone laughs at you", "BULLYING"),
+        ("You look vile and completely repulsive", "BULLYING"),
+        ("You are a worthless parasite that nobody cares about", "BULLYING"),
+        ("You're a disgusting scumbag, do the world a favor and leave", "BULLYING"),
+        ("You're a clown and the entire school makes fun of you", "BULLYING"),
+        ("Go crawl into a hole and rot, nobody wants you here", "BULLYING"),
+        ("You're an absolute embarrassment to your entire family", "BULLYING"),
+        ("You are a hopeless failure at everything you try", "BULLYING"),
+        ("You're a brainless imbecile who can't do anything right", "BULLYING"),
+        ("You belong in a dumpster with the rest of the trash", "BULLYING"),
+        ("You are a pathetic outcast with zero friends", "BULLYING"),
+        ("Everyone in our group chat agrees you are completely obnoxious", "BULLYING"),
+        ("Nobody will ever love someone as hideous as you", "BULLYING"),
+        ("Go cry to your mommy you little baby", "BULLYING"),
+        ("You're a waste of oxygen, stop talking", "BULLYING"),
+        ("You're so desperate for attention it makes everyone sick", "BULLYING"),
+        ("We kicked you out of the group because you're unbearable", "BULLYING"),
+        ("Look at this loser trying so hard to be relevant", "BULLYING"),
+        ("You have no life and no future", "BULLYING"),
+
+        # ============================================================
+        # EXTENDED VOCABULARY: GROOMING (Coercion, boundary-pushing, secrecy)
+        # ============================================================
+        ("Sneak out of your bedroom window tonight and meet me", "GROOMING"),
+        ("Meet me behind the park where there are no streetlights", "GROOMING"),
+        ("Lock your bedroom door so your parents can't walk in", "GROOMING"),
+        ("Take off your clothes and turn on the webcam", "GROOMING"),
+        ("Send me a spicy picture of your body", "GROOMING"),
+        ("Show me what you look like without your shirt on", "GROOMING"),
+        ("Send me an intimate photo, just between the two of us", "GROOMING"),
+        ("You have such a hot body for someone your age", "GROOMING"),
+        ("Let's play an adult game that only grown-ups play", "GROOMING"),
+        ("You can tell me anything, our chat is 100% confidential", "GROOMING"),
+        ("Delete this conversation right now before your dad checks", "GROOMING"),
+        ("Clear your browsing history so nobody discovers us", "GROOMING"),
+        ("Don't mention our special friendship to your mother", "GROOMING"),
+        ("Your parents are too strict and old-fashioned, they don't get you", "GROOMING"),
+        ("I'm the only person in this world who truly appreciates you", "GROOMING"),
+        ("I bought you an expensive gift, now you have to do what I ask", "GROOMING"),
+        ("Are you in bed right now? What are you wearing?", "GROOMING"),
+        ("Switch to Telegram or Signal so the messages disappear automatically", "GROOMING"),
+
+        # ============================================================
+        # EXTENDED VOCABULARY: SELF_HARM (Direct expressions, despair)
+        # ============================================================
+        ("I'm going to slit my wrists tonight", "SELF_HARM"),
+        ("I took a razor blade to my arm again", "SELF_HARM"),
+        ("I have a bottle of pills and I'm going to swallow them all", "SELF_HARM"),
+        ("I tied a rope in my closet and I'm ready to hang myself", "SELF_HARM"),
+        ("I want to jump off the bridge and end the misery", "SELF_HARM"),
+        ("I'm going to drink bleach to stop this agony", "SELF_HARM"),
+        ("This is my suicide note, please forgive me everyone", "SELF_HARM"),
+        ("I can't endure this excruciating emotional pain anymore", "SELF_HARM"),
+        ("I want to bleed out and never wake up again", "SELF_HARM"),
+        ("Tonight is my final night on this earth", "SELF_HARM"),
+        ("Goodbye cruel world, nobody will miss me when I'm gone", "SELF_HARM"),
+        ("I am going to crash my bike on purpose so I don't survive", "SELF_HARM"),
+
+        # ============================================================
+        # EXTENDED VOCABULARY: PRIVACY_RISK (Direct geolocation & personal data)
+        # ============================================================
+        ("Drop your live location pin on WhatsApp right now", "PRIVACY_RISK"),
+        ("Send me your exact GPS coordinates", "PRIVACY_RISK"),
+        ("What is your street name and house number?", "PRIVACY_RISK"),
+        ("Which floor and apartment number is yours?", "PRIVACY_RISK"),
+        ("What time does your house stay empty during weekdays?", "PRIVACY_RISK"),
+        ("Are your parents away on vacation this weekend?", "PRIVACY_RISK"),
+        ("Give me your mother's credit card number and CVV", "PRIVACY_RISK"),
+        ("What is the OTP code you just received on your phone?", "PRIVACY_RISK"),
+        ("Send me your social security number or Aadhaar number", "PRIVACY_RISK"),
+        ("What is your parent's annual income and bank name?", "PRIVACY_RISK"),
+        ("Which exact bus stop do you wait at every morning alone?", "PRIVACY_RISK"),
+
+        # ============================================================
+        # EXTENDED VOCABULARY: SAFE CONTEXTS (Gaming, pop culture, sports, humor)
+        # ============================================================
+        ("I got a 10 kill streak in Call of Duty with a sniper rifle", "SAFE"),
+        ("The final boss in Elden Ring is going to destroy me", "SAFE"),
+        ("He planted the bomb on site A in Counter-Strike", "SAFE"),
+        ("We eliminated the entire enemy squad in Apex Legends", "SAFE"),
+        ("I sniped him through the smoke in Valorant", "SAFE"),
+        ("The combat moves in Mortal Kombat are so brutal and crazy", "SAFE"),
+        ("In GTA the police chase was insane with all the shooting", "SAFE"),
+        ("The villain in the Batman movie got executed at the end", "SAFE"),
+        ("That horror movie had so much blood and stabbing scenes", "SAFE"),
+        ("In the detective series the murderer strangled the victim", "SAFE"),
+        ("The fight choreographer in John Wick is incredible", "SAFE"),
+        ("Our football team slaughtered the opponents 6 to 0", "SAFE"),
+        ("We battered their defense during the entire second half", "SAFE"),
+        ("That cricket bowler is lethal, he smashed the stumps", "SAFE"),
+        ("That comedy routine had me choking on my drink from laughter 😂", "SAFE"),
+        ("I'm dying laughing at this ridiculous meme 💀🤣", "SAFE"),
+        ("That roast was savage, you destroyed him dude haha", "SAFE"),
+        ("She totally slayed that dance performance on stage", "SAFE"),
+        ("That chemistry exam was absolute murder, everyone failed", "SAFE"),
+        ("My legs are completely dead after running that marathon", "SAFE"),
+        # ============================================================
+        # NEGATION & CONTEXTUAL AMBIGUITY (Safe statements containing risky words)
+        # ============================================================
+        ("I would never hurt you or anyone else", "SAFE"),
+        ("Please do not kill yourself, you have so much to live for", "SAFE"),
+        ("I am definitely not going to hurt you", "SAFE"),
+        ("I do not hate you at all, you are my best friend", "SAFE"),
+        ("Stop saying you will die, everything will be okay", "SAFE"),
+        ("I do not want to fight anyone after school", "SAFE"),
+        ("I am not going to let anyone bully you", "SAFE"),
+        ("I promise I will never betray your trust", "SAFE"),
+        ("The teacher said bullying will not be tolerated in class", "SAFE"),
+        ("In history class we learned about how ancient armies fought battles", "SAFE"),
+        ("We were discussing the tragedy in English literature class", "SAFE"),
+        ("I told him to stop threatening other students and he listened", "SAFE"),
+
+        # ============================================================
+        # SLANG, ABBREVIATIONS & MISSPELLINGS (Realistic chat risks)
+        # ============================================================
+        ("kys nobody likes u in this school", "BULLYING"),
+        ("u r such a pathetic loserrrr", "BULLYING"),
+        ("everyone thx u r a total joke", "BULLYING"),
+        ("i will k!ll u after school today", "THREAT"),
+        ("im gonna k1ll u rn watch ur back", "THREAT"),
+        ("i will beat u up after class bro", "THREAT"),
+        ("u r dead meat when i find u", "THREAT"),
+        ("wanna sneak out w/ me 2night? dont tell ur mom", "GROOMING"),
+        ("send spicy pic on snap rn or i block u", "GROOMING"),
+        ("send a pic of ur body just between us", "GROOMING"),
+        ("send ur live location pin rn", "PRIVACY_RISK"),
+        ("tell me ur home address rn or else", "PRIVACY_RISK"),
+        ("i wanna kms so badly everything hurts", "SELF_HARM"),
+        ("i wanna dieeee rn i cant take this", "SELF_HARM"),
+        ("if u dont do this im gonna hurt myself and its ur fault", "MANIPULATION"),
+        ("u owe me big time, do what i say rn", "MANIPULATION"),
+
+        # ============================================================
+        # INDIRECT RISKY EXPRESSIONS (Nuanced & subtle intimidation / grooming)
+        # ============================================================
+        ("It would be a real shame if something unexpected happened to you on your walk home", "THREAT"),
+        ("You might want to look over your shoulder every step you take today", "THREAT"),
+        ("Certain people know how to make problems like you disappear quietly", "THREAT"),
+        ("I know people who handle people like you without leaving a trace", "THREAT"),
+        ("Bad things tend to happen to kids who talk too much", "THREAT"),
+        ("You will definitely regret opening your mouth about this", "THREAT"),
+        ("Let us keep our special connection between just the two of us, nobody else needs to know", "GROOMING"),
+        ("You are so much more mature and grown up than those silly kids in your grade", "GROOMING"),
+        ("I bought you a really nice surprise, but you have to come alone to get it", "GROOMING"),
+        ("Your parents are too old-fashioned to understand how special our bond is", "GROOMING"),
+        ("Let's switch to an encrypted app where nobody can monitor our private chats", "GROOMING"),
+        ("If you truly valued our friendship you would never hesitate to do this for me", "MANIPULATION"),
+        ("After everything I have done for your family, this is the gratitude you show me?", "MANIPULATION"),
     ]
     
+    # Check for optional user-provided custom dataset
+    custom_data = load_custom_samples()
+    if custom_data:
+        training_data.extend(custom_data)
+        
     return training_data
+
+
+def load_custom_samples(filepath: str = None) -> list:
+    """
+    Load external labelled samples from a JSON or CSV file if provided.
+    
+    Expected JSON format:
+        [{"text": "Sample sentence", "label": "CATEGORY"}, ...]
+    Expected CSV format:
+        text,label
+    """
+    import os, json, csv
+    
+    if not filepath:
+        default_custom = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'custom_data.json')
+        if os.path.exists(default_custom):
+            filepath = default_custom
+        else:
+            return []
+            
+    if not os.path.exists(filepath):
+        return []
+        
+    loaded = []
+    try:
+        if filepath.endswith('.json'):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                records = json.load(f)
+                for r in records:
+                    if 'text' in r and 'label' in r:
+                        loaded.append((str(r['text']), str(r['label'])))
+        elif filepath.endswith('.csv'):
+            with open(filepath, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if 'text' in row and 'label' in row:
+                        loaded.append((str(row['text']), str(row['label'])))
+    except Exception as e:
+        print(f"Notice: Could not load custom dataset from {filepath}: {e}")
+        
+    return loaded
 
 
 def get_label_descriptions():

@@ -1,61 +1,16 @@
 {
-  "accuracy": 0.845,
-  "precision_macro": 0.8482,
-  "recall_macro": 0.8553,
-  "f1_macro": 0.8458,
-  "per_class": {
-    "BULLYING": {
-      "precision": 0.72,
-      "recall": 0.9,
-      "f1": 0.8,
-      "support": 20
-    },
-    "GROOMING": {
-      "precision": 1.0,
-      "recall": 0.8667,
-      "f1": 0.9286,
-      "support": 15
-    },
-    "MANIPULATION": {
-      "precision": 0.7143,
-      "recall": 0.9091,
-      "f1": 0.8,
-      "support": 11
-    },
-    "PRIVACY_RISK": {
-      "precision": 0.9375,
-      "recall": 1.0,
-      "f1": 0.9677,
-      "support": 15
-    },
-    "SAFE": {
-      "precision": 0.9167,
-      "recall": 0.7857,
-      "f1": 0.8462,
-      "support": 28
-    },
-    "SCAM": {
-      "precision": 0.9286,
-      "recall": 1.0,
-      "f1": 0.963,
-      "support": 13
-    },
-    "SELF_HARM": {
-      "precision": 0.8182,
-      "recall": 0.8182,
-      "f1": 0.8182,
-      "support": 11
-    },
-    "THREAT": {
-      "precision": 0.75,
-      "recall": 0.5625,
-      "f1": 0.6429,
-      "support": 16
-    }
-  },
-  "training_samples": 515,
-  "test_samples": 129,
-  "feature_count": 4849,
+  "model_version": "2.0.0-featureunion",
+  "pipeline_architecture": "FeatureUnion(Word_TFIDF(1,2) + Char_TFIDF(3,5)) -> LogisticRegression(balanced)",
+  "accuracy": 0.7712,
+  "precision_macro": 0.7827,
+  "recall_macro": 0.7885,
+  "f1_macro": 0.7764,
+  "false_positives": 10,
+  "false_negatives": 3,
+  "latency_ms_per_sample": 0.375,
+  "total_features": 15182,
+  "training_samples": 760,
+  "test_samples": 118,
   "classes": [
     "BULLYING",
     "GROOMING",
@@ -65,5 +20,137 @@
     "SCAM",
     "SELF_HARM",
     "THREAT"
+  ],
+  "per_class": {
+    "BULLYING": {
+      "precision": 0.7059,
+      "recall": 0.8,
+      "f1": 0.75,
+      "support": 15
+    },
+    "GROOMING": {
+      "precision": 0.6111,
+      "recall": 0.7857,
+      "f1": 0.6875,
+      "support": 14
+    },
+    "MANIPULATION": {
+      "precision": 0.7778,
+      "recall": 0.875,
+      "f1": 0.8235,
+      "support": 8
+    },
+    "PRIVACY_RISK": {
+      "precision": 0.8571,
+      "recall": 1.0,
+      "f1": 0.9231,
+      "support": 12
+    },
+    "SAFE": {
+      "precision": 0.8929,
+      "recall": 0.7143,
+      "f1": 0.7937,
+      "support": 35
+    },
+    "SCAM": {
+      "precision": 1.0,
+      "recall": 0.6667,
+      "f1": 0.8,
+      "support": 6
+    },
+    "SELF_HARM": {
+      "precision": 0.6667,
+      "recall": 0.8,
+      "f1": 0.7273,
+      "support": 10
+    },
+    "THREAT": {
+      "precision": 0.75,
+      "recall": 0.6667,
+      "f1": 0.7059,
+      "support": 18
+    }
+  },
+  "confusion_matrix": [
+    [
+      12,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    [
+      0,
+      11,
+      0,
+      0,
+      2,
+      0,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      7,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      12,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      3,
+      0,
+      1,
+      25,
+      0,
+      4,
+      1
+    ],
+    [
+      0,
+      1,
+      0,
+      0,
+      0,
+      4,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      8,
+      0
+    ],
+    [
+      2,
+      0,
+      2,
+      1,
+      1,
+      0,
+      0,
+      12
+    ]
   ]
 }

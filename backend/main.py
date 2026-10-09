@@ -39,12 +39,16 @@ app.include_router(alerts_router)
 app.add_api_websocket_route('/ws/chat/{token}', websocket_endpoint)
 app.add_api_websocket_route('/ws/alerts/{token}', alerts_websocket_endpoint)
 
+from backend.database.mongodb import create_indexes, auto_seed_if_needed
+
 @app.on_event('startup')
 async def startup_event():
     print('Starting Child-Safe Digital Environment Manager...')
     create_indexes()
+    auto_seed_if_needed()
     print(f'Environment: {settings.ENVIRONMENT}')
     print('Server ready.')
+
 
 import os
 from pathlib import Path

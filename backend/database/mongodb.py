@@ -1,20 +1,41 @@
+import logging
 from pymongo import MongoClient, ASCENDING, DESCENDING
+from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from backend.config.settings import settings
+
+logger = logging.getLogger(__name__)
 
 _client = None
 _db = None
+_is_mock = False
 
 def get_client():
-    global _client
+    global _client, _is_mock
     if _client is None:
-        _client = MongoClient(settings.MONGODB_URI)
+        try:
+            client = MongoClient(settings.MONGODB_URI, serverSelectionTimeoutMS=2000)
+            client.admin.command('ping')
+            _client = client
+            _is_mock = False
+            print(f'Connected to MongoDB at {settings.MONGODB_URI}')
+        except Exception as e:
+            print(f'Warning: MongoDB connection failed ({e}). Falling back to in-memory mongomock.')
+            try:
+                import mongomock
+                _client = mongomock.MongoClient()
+                _is_mock = True
+            except ImportError:
+                raise e
     return _client
 
 def get_database():
     global _db
     if _db is None:
         client = get_client()
-        _db = client.get_default_database() if '/' in settings.MONGODB_URI and settings.MONGODB_URI.rsplit('/', 1)[-1] else client['childsafe']
+        if _is_mock:
+            _db = client['childsafe']
+        else:
+            _db = client.get_default_database() if '/' in settings.MONGODB_URI and settings.MONGODB_URI.rsplit('/', 1)[-1] else client['childsafe']
     return _db
 
 def create_indexes():
@@ -41,3 +62,14 @@ def create_indexes():
     db.parent_child_links.create_index([('parent_id', ASCENDING)])
     db.parent_child_links.create_index([('child_id', ASCENDING)])
     print('Database indexes created successfully')
+
+def auto_seed_if_needed():
+    db = get_database()
+    if db.users.count_documents({}) == 0:
+        print('Database is empty. Auto-seeding demo accounts and conversations...')
+        try:
+            from scripts.seed_data import seed
+            seed()
+        except Exception as err:
+            print(f'Auto-seed error: {err}')
+

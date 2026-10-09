@@ -98,8 +98,10 @@ class RuleEngine:
             },
             'THREAT': {
                 'direct_harm': [
-                    re.compile(r"i\s+(will|am going to|am gonna|'m gonna|'m going to)\s+(hurt|harm|beat|hit|attack|stab|shoot|find)\s+you", re.I),
-                    re.compile(r"i[\u2019']?ll\s+(hurt|harm|beat|hit|attack|stab|shoot|find)\s+you", re.I),
+                    re.compile(r"i\s+(will|am going to|am gonna|'m gonna|'m going to)\s+(hurt|harm|beat|hit|attack|stab|shoot|strangle|choke|bash|batter|slice|slaughter|burn|drown|assault|find|stalk|jump)\s+you", re.I),
+                    re.compile(r"i[\u2019']?ll\s+(hurt|harm|beat|hit|attack|stab|shoot|strangle|choke|bash|batter|slice|slaughter|burn|drown|assault|find|stalk|jump)\s+you", re.I),
+                    re.compile(r"(break\s+your\s+(neck|legs|bones|face)|put\s+you\s+in\s+the\s+(hospital|ground|coma)|bury\s+you|slit\s+your\s+throat)", re.I),
+                    re.compile(r"(doxx|swat|leak\s+all\s+your|ruin\s+your\s+life)", re.I),
                     re.compile(r"(wait|watch)\s+(until|till)\s+i\s+(find|see|catch|get)\s+you", re.I),
                     re.compile(r"you[\u2019']?re\s+(dead|done|finished)\b(?!.*\b(game|match|round|level))", re.I),
                 ],
@@ -109,7 +111,7 @@ class RuleEngine:
                     re.compile(r"(coming|going)\s+to\s+your\s+(house|home|school)", re.I),
                 ],
                 'conditional_threat': [
-                    re.compile(r"if\s+you\s+(tell|say|don[\u2019't]*).*i[\u2019']?ll\s+(hurt|kill|beat|get|destroy)", re.I),
+                    re.compile(r"if\s+you\s+(tell|say|don[\u2019't]*).*i[\u2019']?ll\s+(hurt|kill|beat|get|destroy|strangle|stab|shoot)", re.I),
                     re.compile(r"(tell|say)\s+anyone.*and\s+(you[\u2019']?re|i[\u2019']?ll)", re.I),
                 ],
             },

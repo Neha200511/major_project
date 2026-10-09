@@ -36,25 +36,28 @@ EMOJI_PATTERN = re.compile(
 
 
 def clean_text(text: str) -> str:
-    """Clean text: lowercase, remove excessive whitespace, basic normalization."""
+    """Clean text: lowercase, remove excessive whitespace, normalize contractions and slang."""
     if not text or not isinstance(text, str):
         return ""
-    text = text.lower().strip()
-    # Normalize unicode whitespace
-    text = re.sub(r'[\t\r]+', ' ', text)
-    # Remove excessive whitespace but keep single spaces
-    text = re.sub(r' {2,}', ' ', text)
-    # Normalize common contractions
-    text = re.sub(r"won[\u2019']t", "will not", text)
-    text = re.sub(r"can[\u2019']t", "cannot", text)
-    text = re.sub(r"n[\u2019']t", " not", text)
-    text = re.sub(r"[\u2019']re", " are", text)
-    text = re.sub(r"[\u2019']s", " is", text)
-    text = re.sub(r"[\u2019']d", " would", text)
-    text = re.sub(r"[\u2019']ll", " will", text)
-    text = re.sub(r"[\u2019']ve", " have", text)
-    text = re.sub(r"[\u2019']m", " am", text)
-    return text.strip()
+    try:
+        from ml.preprocessing import normalize_text
+        return normalize_text(text)
+    except ImportError:
+        # Fallback if ml package not in path
+        text = text.lower().strip()
+        text = re.sub(r'[\t\r]+', ' ', text)
+        text = re.sub(r' {2,}', ' ', text)
+        text = re.sub(r"won[\u2019']t", "will not", text)
+        text = re.sub(r"can[\u2019']t", "cannot", text)
+        text = re.sub(r"n[\u2019']t", " not", text)
+        text = re.sub(r"[\u2019']re", " are", text)
+        text = re.sub(r"[\u2019']s", " is", text)
+        text = re.sub(r"[\u2019']d", " would", text)
+        text = re.sub(r"[\u2019']ll", " will", text)
+        text = re.sub(r"[\u2019']ve", " have", text)
+        text = re.sub(r"[\u2019']m", " am", text)
+        return text.strip()
+
 
 
 def tokenize(text: str) -> List[str]:
