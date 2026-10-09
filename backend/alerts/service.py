@@ -17,6 +17,8 @@ def create_alert(alert_data: dict) -> dict:
         alert_data['status'] = 'NEW'
     
     db.alerts.insert_one(alert_data.copy())
+    from backend.database.mongodb import save_mock_db
+    save_mock_db()
     return alert_data
 
 def get_alerts(child_id: str, status_filter: str = None, severity_filter: str = None) -> list:
@@ -55,6 +57,8 @@ def acknowledge_alert(alert_id: str) -> dict:
         {'alert_id': alert_id},
         {'$set': {'status': 'ACKNOWLEDGED', 'acknowledged_at': datetime.utcnow()}}
     )
+    from backend.database.mongodb import save_mock_db
+    save_mock_db()
     return get_alert_by_id(alert_id)
 
 def resolve_alert(alert_id: str) -> dict:
@@ -63,6 +67,8 @@ def resolve_alert(alert_id: str) -> dict:
         {'alert_id': alert_id},
         {'$set': {'status': 'RESOLVED', 'acknowledged_at': datetime.utcnow()}}
     )
+    from backend.database.mongodb import save_mock_db
+    save_mock_db()
     return get_alert_by_id(alert_id)
 
 def check_alert_cooldown(conversation_id: str) -> bool:

@@ -22,6 +22,8 @@ def save_message(conversation_id: str, sender_id: str, receiver_id: str, content
         {'conversation_id': conversation_id},
         {'$set': {'last_message_at': now, 'updated_at': now}}
     )
+    from backend.database.mongodb import save_mock_db
+    save_mock_db()
     message_doc.pop('_id', None)
     message_doc['timestamp'] = format_timestamp(now)
     return message_doc
@@ -32,6 +34,8 @@ def mark_messages_read(conversation_id: str, user_id: str) -> int:
         {'conversation_id': conversation_id, 'receiver_id': user_id, 'delivery_status': {'$ne': 'read'}},
         {'$set': {'delivery_status': 'read'}}
     )
+    from backend.database.mongodb import save_mock_db
+    save_mock_db()
     return result.modified_count
 
 def get_unread_count(conversation_id: str, user_id: str) -> int:

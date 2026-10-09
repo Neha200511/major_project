@@ -23,6 +23,8 @@ def create_conversation(participant1_id: str, participant2_id: str) -> dict:
         'status': 'active'
     }
     db.conversations.insert_one(conv_doc)
+    from backend.database.mongodb import save_mock_db
+    save_mock_db()
     conv_doc.pop('_id', None)
     return conv_doc
 

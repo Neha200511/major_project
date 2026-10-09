@@ -439,6 +439,8 @@ class RiskEngine:
         try:
             if self.db is not None:
                 self.db.risk_scores.insert_one(risk_record)
+                from backend.database.mongodb import save_mock_db
+                save_mock_db()
         except Exception as e:
             logger.error("Failed to save risk score: %s", str(e))
 
@@ -447,6 +449,8 @@ class RiskEngine:
         try:
             if self.db is not None:
                 self.db.alerts.insert_one(alert_data)
+                from backend.database.mongodb import save_mock_db
+                save_mock_db()
                 logger.info(
                     "Alert saved: %s (severity=%s, score=%d)",
                     alert_data['alert_id'],

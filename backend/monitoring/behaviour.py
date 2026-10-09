@@ -125,6 +125,8 @@ class BehaviourAnalyzer:
                 {'$set': profile},
                 upsert=True
             )
+            from backend.database.mongodb import save_mock_db
+            save_mock_db()
         except Exception as e:
             logger.error("Failed to save behaviour profile: %s", str(e))
 

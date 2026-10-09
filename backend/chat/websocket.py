@@ -142,6 +142,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                 {'receiver_id': user_id, 'delivery_status': 'sent'},
                 {'$set': {'delivery_status': 'delivered'}},
             )
+            from backend.database.mongodb import save_mock_db
+            save_mock_db()
             for cid in pending:
                 conv = get_conversation(cid)
                 sender = _other_participant(conv, user_id) if conv else None
@@ -199,6 +201,8 @@ async def websocket_endpoint(websocket: WebSocket, token: str):
                         {'message_id': message_doc['message_id']},
                         {'$set': {'delivery_status': 'delivered'}},
                     )
+                    from backend.database.mongodb import save_mock_db
+                    save_mock_db()
                     message_doc['delivery_status'] = 'delivered'
 
                 # 3. Deliver to the receiver and echo to all of the sender's tabs
@@ -275,6 +279,8 @@ async def _analyze_message(message_doc: dict, conversation_id: str, sender_id: s
             if alert_data:
                 db = get_database()
                 db.alerts.insert_one(alert_data.copy())
+                from backend.database.mongodb import save_mock_db
+                save_mock_db()
                 await _notify_parent(alert_data)
     except Exception as e:
         print(f'Risk analysis error: {e}')
